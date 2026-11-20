@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ERP Monitoring Insheet</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#12263a;--bg:#eef1f4;--card:#fff;--line:#d5dce3;--mut:#5d6b78;--ok:#16785a;--okbg:#dff3ea;--bad:#b3261e;--badbg:#fbe3e1;--acc:#0b5e86}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+header{background:var(--ink);color:#fff;padding:14px 22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:600}header small{color:#a9bccd;display:block;font-weight:400;font-size:12px}
+.sp{flex:1}button,select,input{font:inherit}
+.btn{background:#fff;color:var(--ink);border:0;border-radius:6px;padding:8px 14px;cursor:pointer;font-weight:500}.btn.alt{background:transparent;color:#fff;border:1px solid #6d8399}
+nav{display:flex;gap:2px;padding:0 22px;background:#dde3e9;border-bottom:1px solid var(--line)}
+nav button{border:0;background:none;padding:11px 16px;cursor:pointer;color:var(--mut);border-bottom:3px solid transparent;font-weight:500}nav button.on{color:var(--ink);border-color:var(--acc);background:var(--bg)}
+main{padding:20px 22px;max-width:1500px;margin:auto}section{display:none}section.on{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}.c{min-width:0}.c b{display:block;font:500 22px 'IBM Plex Mono',monospace;white-space:nowrap}.c.m b{font-size:17px;line-height:30px}.c span{color:var(--mut);font-size:12px}
+.pb{position:relative;width:96px;height:16px;background:#e6ebf0;border-radius:4px;overflow:hidden}.pb i{position:absolute;left:0;top:0;bottom:0;opacity:.75}.pb span{position:relative;font:500 11px 'IBM Plex Mono',monospace;padding-left:6px;line-height:16px}.cards.s{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.c.ok b{color:var(--ok)}.c.bad b{color:var(--bad)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.bar select,.bar input{padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;min-width:150px}
+.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px;margin-bottom:22px;max-height:70vh}
+table{border-collapse:collapse;width:100%;font-size:13px}th{position:sticky;top:0;background:#f4f6f8;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:default}
+#main th{cursor:pointer}td{padding:6px 10px;border-bottom:1px solid #edf0f3;vertical-align:top}tr[data-jo]{cursor:pointer}tr[data-jo]:hover{background:#f1f7fb}
+.nw{white-space:nowrap}.n{text-align:right;font-family:'IBM Plex Mono',monospace;white-space:nowrap}.neg{color:var(--bad)}
+.pill{white-space:nowrap;display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600}.pill.ok{background:var(--okbg);color:var(--ok)}.pill.eq{background:rgba(120,140,160,.22);color:inherit}.pill.bad{background:var(--badbg);color:var(--bad)}
+#t .wrap,#x .wrap,#r .wrap{max-height:none}#t table{font-size:12.5px}#t td,#t th{padding:6px 8px}#t td:nth-child(4){min-width:200px}
+h2{font-size:16px;margin:22px 0 4px}.note{color:var(--mut);margin:0 0 8px;font-size:12.5px}
+#drop{border:2px dashed #9fb0bf;border-radius:10px;padding:46px;text-align:center;color:var(--mut);background:#fff}
+#err{background:var(--badbg);color:var(--bad);border:1px solid #e9b4b0;border-radius:8px;padding:12px 16px;margin-bottom:14px;display:none;white-space:pre-line}
+dialog{border:0;border-radius:10px;padding:18px 20px;width:min(760px,94vw);box-shadow:0 10px 40px #0004}dialog::backdrop{background:#0006}
+#login{position:fixed;inset:0;background:var(--ink);z-index:99;display:flex;align-items:center;justify-content:center}
+#login form{background:#fff;border-radius:12px;padding:28px;width:min(360px,92vw);display:flex;flex-direction:column;gap:12px}
+#login h2{margin:0;font-size:18px}#login p{margin:0;color:var(--mut);font-size:12.5px}#login input{padding:10px;border:1px solid var(--line);border-radius:6px}
+#login button{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:10px;cursor:pointer;font-weight:500}#lerr{color:var(--bad);font-size:13px;min-height:18px}
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script></head><body>
+<div id="login"><form id="lf"><h2>ERP Monitoring Insheet</h2><p>Silakan masuk dengan akun Anda.</p><input id="le" type="email" placeholder="Email" autocomplete="username" required><input id="lp" type="password" placeholder="Password" autocomplete="current-password" required><div id="lerr"></div><button type="submit">Masuk</button></form></div>
+<header><div><h1>ERP Monitoring Insheet<small id="meta">Belum ada data. Impor file Excel untuk mulai.</small></h1></div><div class="sp"></div>
+<span id="who" style="font-size:12px;color:#a9bccd"></span><button class="btn alt" id="lo" hidden>Keluar</button><button class="btn alt" id="bx" disabled>Ekspor Excel</button>
+<label class="btn" id="imp" hidden>Impor Excel<input type="file" id="f" accept=".xlsx,.xlsm" hidden></label></header>
+<nav id="tabs"><button data-t="r" class="on">Ringkasan</button><button data-t="a">Analisa Insheet</button><button data-t="t">Top &amp; Kasus Parah</button><button data-t="x">Data Tidak Lengkap</button></nav>
+<main><div id="err"></div>
+<div id="drop" style="display:none">Seret file Excel ke sini, atau klik <b>Impor Excel</b>.<br>Sheet wajib: <b>2022</b> (daftar JO &amp; gudang), Sheet5 (insheet real &amp; mounting terpilih), Sheet7 (kalkulasi), Sheet9 (JO), Sheet10 (mounting IO), Sheet14 (SO).</div>
+<section id="r" class="on"></section>
+<section id="a"><div class="cards" id="cards"></div>
+<div class="bar"><select id="fb"></select><select id="fs"><option value="">Semua status</option><option>AMAN</option><option>SESUAI</option><option>TIDAK AMAN</option></select><select id="fc"></select><input id="q" placeholder="Cari JO / IO / produk"></div>
+<div class="wrap"><table id="main"></table></div></section>
+<section id="t"></section>
+<section id="x"></section></main>
+<dialog id="dlg"></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n},norm=s=>String(s??'').trim().toUpperCase();
+const fmt=n=>new Intl.NumberFormat('id-ID').format(Math.round(n)),pad=n=>String(n).padStart(2,'0');
+const REQ={'2022':['Nomor Jo','Tgl Keluar','Qty LP','Keterangan'],Sheet5:['id_jo','id_io_mounting','is_selected','total_insheet'],Sheet7:['id','print_insheet','profit'],Sheet9:['id','no_jo','no_io','no_so','customer','produk','qty'],Sheet10:['id','ukuran_cetak_bagian_1'],Sheet14:['no_so','id_kalkulasi','harga_jual']};
+const COLS=[['jo','No JO'],['io','No IO'],['bulan','Bulan'],['cust','Customer'],['prod','Product'],['K','Kalkulasi (K)'],['real','Insheet Real'],['L','Qty Tambah Bahan (L)'],['bg','Bagian'],['P','Tambahan (L × bagian)'],['qR','Qty Tambah Insheet (R)'],['R','Tambah Insheet (R × bagian)'],['tot','Pakai (Real+P+R)'],['status','Status'],['sel','Selisih K-(Real+P+R)'],['rp','Total Rp (JO)'],['mg','Profit Margin'],['pct','Pakai vs K'],['frek','Frek.']];
+const TOPC=['jo','bulan','cust','prod','K','real','L','P','qR','R','status','sel','pct','rp','mg'];
+let D=null,sort={k:'sel',d:1};
+function tg(v){if(v instanceof Date)return new Date(v.getTime()+43200000);if(typeof v==='number'){const p=XLSX.SSF.parse_date_code(v);return p?new Date(p.y,p.m-1,p.d,12):null}if(v){const d=new Date(v);return isNaN(d)?null:d}return null}
+const kat=k=>{k=String(k??'').trim().toLowerCase();return !k?'pokok':/\(\+\)|^\+$/.test(k)?'P':k.includes('tam')?'R':'lain'};
+const KL={pokok:'Pokok',P:'Tambahan insheet (+)',R:'Tambah insheet',lain:'Lainnya (tidak dihitung)'};
+function hitung(wb){
+ const J=n=>XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:null}).map(r=>{const o={};for(const k in r)o[k.trim()]=r[k];return o}),jo9=new Map,so14=new Map,kal7=new Map,mnt=new Map,io10=new Map,mid=new Map,L=new Map,RL=new Map,g=new Map,ids=new Map;
+ J('Sheet9').forEach(r=>{const k=norm(r.no_jo);if(!k)return;if(!jo9.has(k))jo9.set(k,r);if(!ids.has(k))ids.set(k,[]);ids.get(k).push(r.id)});
+ J('Sheet14').forEach(r=>{const k=norm(r.no_so);if(k&&!so14.has(k))so14.set(k,r)});
+ J('Sheet7').forEach(r=>{if(r.id!=null&&!kal7.has(r.id))kal7.set(r.id,r)});
+ J('Sheet10').forEach(r=>{if(r.id!=null&&!mnt.has(r.id)){mnt.set(r.id,num(r.ukuran_cetak_bagian_1));if(r.id_io!=null){if(!io10.has(r.id_io))io10.set(r.id_io,[]);io10.get(r.id_io).push(r.id)}}});
+ J('Sheet5').forEach(r=>{if(num(r.is_selected)!==1)return;L.set(r.id_jo,1);RL.set(r.id_jo,(RL.get(r.id_jo)||0)+num(r.total_insheet));if(!mid.has(r.id_jo))mid.set(r.id_jo,r.id_io_mounting)});
+ J('2022').forEach(r=>{const jo=norm(r['Nomor Jo']);if(!/^JO-\d+\/\d+\/\d{4}$/.test(jo))return;
+  const d=tg(r['Tgl Keluar']),q=num(r['Qty LP']),k=kat(r.Keterangan);if(k!=='P'&&k!=='R')return;let e=g.get(jo);if(!e)g.set(jo,e={P:0,R:0,h:[],d:null});
+  if(k==='P')e.P+=q;if(k==='R')e.R+=q;if(d&&(!e.d||d<e.d))e.d=d;
+  e.h.push({tgl:d,qty:q,ket:r.Keterangan||'',kat:k})});
+ const rows=[],ex=[];
+ g.forEach((e,jo0)=>{const jo=jo0,s=jo9.get(jo),why=m=>ex.push({jo:jo0,alasan:m});
+  if(!s)return;const so=so14.get(norm(s.no_so));if(!so)return why('SO tidak ada di Sheet14');
+  const kal=kal7.get(so.id_kalkulasi);if(!kal)return why('Kalkulasi tidak ada di Sheet7');const K=num(kal.print_insheet);if(K<=0)return why('Insheet kalkulasi (kolom BD Sheet7) kosong/0');
+  const li=(ids.get(jo)||[]).filter(i=>L.has(i)),io=io10.get(s.id_io)||[],mi=li.length?mid.get(li[0]):(io.length===1?io[0]:null);if(mi==null)return why(io.length>1?'Mounting belum dipilih di Sheet5 (IO punya lebih dari 1 mounting)':'Mounting tidak ditemukan (Sheet5 dan Sheet10)');const bg=mnt.get(mi)||0;if(bg<=0)return why('Bagian mounting terpilih tidak ditemukan di Sheet10');
+  const h=num(so.harga_jual);if(h<=0)return why('Harga jual kosong');if(!e.d)return why('Tanggal keluar gudang kosong');
+  const Lr=e.P,P=Lr*bg,R=e.R*bg,Re=(ids.get(jo)||[]).reduce((s,i)=>s+(RL.get(i)||0),0),tot=Re+P+R,sel=K-tot;e.h.sort((a,b)=>(a.tgl||0)-(b.tgl||0));
+  rows.push({jo:jo0,real:Re,qR:e.R,io:s.no_io||'',bulan:e.d.getFullYear()+'-'+pad(e.d.getMonth()+1),cust:s.customer,prod:s.produk,K,L:Lr,bg,P,R,tot,sel,status:Math.abs(sel)<1e-6?'SESUAI':sel>0?'AMAN':'TIDAK AMAN',rp:num(s.qty)*h,mg:num(kal.profit)/100,pct:tot/K*100,frek:s.frekuensi??'',h:e.h})});
+ return{rows,ex}}
+const jenis=r=>r.status==='AMAN'?0:r.real+r.P>r.K?1:2;
+function cell(r,k){const v=r[k];if(k==='status')return`<td><span class="pill ${v==='TIDAK AMAN'?'bad':v==='SESUAI'?'eq':'ok'}">${v}</span></td>`;
+ if(k==='mg')return`<td class="n">${(v*100).toFixed(1)}%</td>`;if(k==='pct')return`<td>${bar(v,v>100?'var(--bad)':v>85?'#d98c1f':'var(--ok)')}</td>`;if(['K','real','L','bg','P','qR','R','tot','rp'].includes(k))return`<td class="n">${fmt(v)}</td>`;if(k==='sel')return`<td class="n ${v<0?'neg':''}">${fmt(v)}</td>`;return`<td${['jo','io','bulan'].includes(k)?' class="nw"':''}>${esc(v)}</td>`}
+function tbl(rows,keys){const c=COLS.filter(x=>keys.includes(x[0]));return`<thead><tr>${c.map(x=>`<th data-k="${x[0]}">${x[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr data-jo="${esc(r.jo)}">${c.map(x=>cell(r,x[0])).join('')}</tr>`).join('')}</tbody>`}
+function fillSel(el,all,vals){el.innerHTML=`<option value="">${all}</option>`+vals.map(v=>`<option>${esc(v)}</option>`).join('')}
+function renderMain(){const b=$('#fb').value,s=$('#fs').value,c=$('#fc').value,q=$('#q').value.toLowerCase();
+ let r=D.rows.filter(x=>(!b||x.bulan===b)&&(!s||x.status===s)&&(!c||x.cust===c)&&(!q||(x.jo+x.io+x.prod).toLowerCase().includes(q)));
+ r.sort((a,z)=>(a[sort.k]>z[sort.k]?1:a[sort.k]<z[sort.k]?-1:0)*sort.d);
+ const bad=r.filter(x=>x.status==='TIDAK AMAN').length,aman=r.filter(x=>x.status==='AMAN').length,eq=r.length-bad-aman;
+ $('#cards').innerHTML=[['Total JO',r.length,''],['AMAN',aman,'ok'],['SESUAI',eq,''],['TIDAK AMAN',bad,'bad'],['Total Rp JO','Rp '+fmt(r.reduce((a,x)=>a+x.rp,0)),''],['% Tidak aman',r.length?(bad/r.length*100).toFixed(1)+'%':'-','']].map(x=>`<div class="c ${x[2]}${String(x[1]).length>12?' m':''}"><b>${typeof x[1]==='number'?fmt(x[1]):x[1]}</b><span>${x[0]} (sesuai filter)</span></div>`).join('');
+ $('#main').innerHTML=tbl(r,COLS.map(x=>x[0]))}
+function grp(key){const m=new Map;D.rows.forEach(r=>{const k=key(r);let g=m.get(k);if(!g)m.set(k,g={k,n:0,bad:0,eq:0,rp:0,rpb:0,mg:0,mgb:0});g.n++;g.rp+=r.rp;g.mg+=r.mg;if(r.status==='SESUAI')g.eq++;if(r.status==='TIDAK AMAN'){g.bad++;g.rpb+=r.rp;g.mgb+=r.mg}});return[...m.values()]}
+const pc=(a,b)=>b?a/b*100:0,bar=(p,c)=>`<div class="pb"><i style="width:${Math.min(100,p)}%;background:${c}"></i><span>${p.toFixed(0)}%</span></div>`;
+function gtbl(rows,lab){return`<div class="wrap"><table><thead><tr><th>${lab}</th><th>Total JO</th><th>AMAN</th><th>SESUAI</th><th>TIDAK AMAN</th><th>% Tidak aman</th><th>Total Rp JO</th><th>Rp JO tidak aman</th><th>Margin rata-rata</th><th>Margin JO tidak aman</th></tr></thead><tbody>${rows.map(g=>`<tr><td>${esc(g.k)}</td><td class="n">${g.n}</td><td class="n">${g.n-g.bad-g.eq}</td><td class="n">${g.eq}</td><td class="n neg">${g.bad}</td><td>${bar(pc(g.bad,g.n),'var(--bad)')}</td><td class="n">${fmt(g.rp)}</td><td class="n">${fmt(g.rpb)}</td><td class="n">${(g.mg/g.n*100).toFixed(1)}%</td><td class="n">${g.bad?(g.mgb/g.bad*100).toFixed(1)+'%':'-'}</td></tr>`).join('')}</tbody></table></div>`}
+function renderRingkasan(){const R=D.rows,bad=R.filter(x=>x.status==='TIDAK AMAN'),J=n=>bad.filter(x=>jenis(x)===n).length,sum=(a,f)=>a.reduce((t,x)=>t+f(x),0),avg=a=>a.length?(sum(a,x=>x.mg)/a.length*100).toFixed(1)+'%':'-';
+ const cd=(l,v,c)=>`<div class="c ${c||''}${String(v).length>12?' m':''}"><b>${v}</b><span>${l}</span></div>`;
+ $('#r').innerHTML=`<p class="note">Kalkulasi (K) = print_insheet Sheet7. Hanya baris sheet 2022 yang ada keterangannya: (+) masuk Tambahan (P), &quot;tambah insheet&quot; atau yang mirip masuk Tambah Insheet (R). Baris pokok (tanpa keterangan) tidak dimasukkan. Insheet Real = jumlah total_insheet baris terpilih (is_selected) di Sheet5. L = Qty LP baris (+) sheet 2022; P = L &times; bagian; R = Qty LP baris tambah insheet &times; bagian (bagian dari mounting terpilih di Sheet5). Rumus: Selisih = K &minus; (Real + P + R). AMAN jika K &gt; Real+P+R, SESUAI jika K = Real+P+R, TIDAK AMAN jika K &lt; Real+P+R.</p><div class="cards">${cd('Total JO',fmt(R.length))+cd('AMAN',fmt(R.filter(x=>x.status==='AMAN').length),'ok')+cd('SESUAI',fmt(R.filter(x=>x.status==='SESUAI').length))+cd('TIDAK AMAN',fmt(bad.length),'bad')+cd('% Tidak aman',pc(bad.length,R.length).toFixed(1)+'%','bad')+cd('Total Rp JO','Rp '+fmt(sum(R,x=>x.rp)))+cd('Rp JO tidak aman','Rp '+fmt(sum(bad,x=>x.rp)),'bad')+cd('Profit margin rata-rata',avg(R))+cd('Margin JO tidak aman',avg(bad))}</div>
+ <h2>Penyebab JO tidak aman</h2><div class="cards s">${cd('Real + Tambahan (P) sudah melebihi kalkulasi',J(1)+' JO','bad')+cd('Tambah insheet (R) membuat lewat',J(2)+' JO','bad')}</div>
+ <h2>Perbandingan per bulan</h2><p class="note">Bulan dari tanggal keluar gudang pertama. Terbaru di atas.</p>${gtbl(grp(r=>r.bulan).sort((a,b)=>a.k<b.k?1:-1),'Bulan')}
+ <h2>Perbandingan per customer</h2><p class="note">15 customer dengan JO tidak aman terbanyak.</p>${gtbl(grp(r=>r.cust).sort((a,b)=>b.bad-a.bad||b.n-a.n).slice(0,15),'Customer')}`}
+function topBlock(title,note,rows,n){return`<h2>${title}</h2><p class="note">${note}</p><div class="wrap"><table>${tbl(rows.slice(0,n),TOPC)}</table></div>`}
+function renderTop(){const bad=D.rows.filter(x=>x.status==='TIDAK AMAN').sort((a,b)=>a.sel-b.sel),J=n=>bad.filter(x=>jenis(x)===n);
+ $('#t').innerHTML=topBlock('Top 10 JO paling tidak aman','Selisih K-(Real+P+R) paling minus.',bad,10)
+ +topBlock('Jenis 1: Real + Tambahan (P) sudah melebihi kalkulasi (K)',`Total ${J(1).length} JO. Top 10 selisih terparah.`,J(1),10)
+ +topBlock('Jenis 2: Tambah insheet (R) yang menyebabkan lewat',`Total ${J(2).length} JO. Real+P masih di bawah K, tetapi Real+P+R melewati K.`,J(2),10)
+ +topBlock('Top 20 JO berdasarkan Total Rp terbesar','Dari seluruh data (AMAN, SESUAI, dan TIDAK AMAN).',[...D.rows].sort((a,b)=>b.rp-a.rp),20)}
+function renderEx(){const m={};D.ex.forEach(e=>(m[e.alasan]=m[e.alasan]||[]).push(e.jo));
+ $('#x').innerHTML=`<p class="note">JO format baru dari sheet 2022 (keterangan (+) atau tambah) yang ada di Sheet9 tetapi datanya belum lengkap tidak ditampilkan di analisa. JO yang tidak ada di Sheet9 tidak ditampilkan. Lengkapi data sumber lalu impor ulang.</p>`+(Object.keys(m).length?Object.entries(m).map(([a,l])=>`<h2>${esc(a)} (${l.length} JO)</h2><p class="note">${l.map(esc).join(', ')}</p>`).join(''):'<p>Semua JO lengkap.</p>')+logHtml()}
+function logHtml(){let l=[];try{l=JSON.parse(localStorage.getItem('erpInsheetLog')||'[]')}catch(e){}
+ return l.length?`<h2>Riwayat impor</h2><div class="wrap"><table><thead><tr><th>Waktu</th><th>File</th><th>JO lengkap</th><th>Tidak lengkap</th></tr></thead><tbody>${l.map(x=>`<tr><td>${esc(x.t)}</td><td>${esc(x.f)}</td><td class="n">${x.a}</td><td class="n">${x.b}</td></tr>`).join('')}</tbody></table></div>`:''}
+function openHist(jo){const r=D.rows.find(x=>x.jo===jo);if(!r)return;
+ $('#dlg').innerHTML=`<h2 style="margin-top:0">${esc(r.jo)}</h2><p class="note">${esc(r.cust)} &middot; ${esc(r.prod)}<br>K ${fmt(r.K)} &middot; Real ${fmt(r.real)} &middot; L ${fmt(r.L)} &middot; Bagian ${fmt(r.bg)} &middot; P ${fmt(r.P)} &middot; R ${fmt(r.R)} &middot; Selisih ${fmt(r.sel)} (${r.status})</p>
+ <p class="note"><b>Rincian hitung:</b> Real = total_insheet terpilih Sheet5 ${fmt(r.real)}. L = Qty LP (+) ${fmt(r.L)}. Tambahan (P) = ${fmt(r.L)} &times; bagian ${fmt(r.bg)} = ${fmt(r.P)}. Tambah insheet (R) = ${fmt(r.bg?r.R/r.bg:0)} &times; ${fmt(r.bg)} = ${fmt(r.R)}.<br>K ${fmt(r.K)} &minus; (Real ${fmt(r.real)} + P ${fmt(r.P)} + R ${fmt(r.R)}) = <b>${fmt(r.sel)}</b> (${r.status}).</p>
+ <p class="note">Riwayat keluar gudang (sheet 2022). Hanya baris ber-keterangan. Qty LP dikali bagian (${fmt(r.bg)}): keterangan (+) masuk kolom Tambahan (L &times; bagian), tambah insheet masuk kolom Tambah insheet.</p><div class="wrap" style="max-height:50vh"><table><thead><tr><th>Tgl keluar</th><th>Keterangan</th><th>Qty LP</th><th>Tambahan (+) &times; bagian</th><th>Tambah insheet &times; bagian</th></tr></thead><tbody>${r.h.map(h=>`<tr><td>${h.tgl?h.tgl.getFullYear()+'-'+pad(h.tgl.getMonth()+1)+'-'+pad(h.tgl.getDate()):'-'}</td><td>${esc(h.ket)}</td><td class="n">${fmt(h.qty)}</td><td class="n">${h.kat==='P'?fmt(h.qty*r.bg):''}</td><td class="n">${h.kat==='R'?fmt(h.qty*r.bg):''}</td></tr>`).join('')}</tbody><tfoot><tr><th>Total</th><th></th><th class="n">${fmt(r.h.reduce((t,h)=>t+h.qty,0))}</th><th class="n">${fmt(r.P)}</th><th class="n">${fmt(r.R)}</th></tr></tfoot></table></div><button class="btn" style="background:#e3e9ee" onclick="dlg.close()">Tutup</button>`;
+ $('#dlg').showModal()}
+function err(m){const e=$('#err');e.textContent=m;e.style.display=m?'block':'none'}
+function load(file){err('');const fr=new FileReader;fr.onload=()=>{try{
+ const wb=XLSX.read(new Uint8Array(fr.result),{type:'array',cellDates:true}),miss=[];
+ for(const[s,cols]of Object.entries(REQ)){if(!wb.Sheets[s]){miss.push(`Sheet "${s}" tidak ditemukan`);continue}
+  const hd=(XLSX.utils.sheet_to_json(wb.Sheets[s],{header:1,range:0,defval:null})[0]||[]).map(x=>String(x??'').trim());
+  const m=cols.filter(c=>!hd.includes(c));if(m.length)miss.push(`Sheet "${s}" kurang kolom: ${m.join(', ')}`)}
+ if(miss.length){err('Data kurang, impor dibatalkan. Mohon lengkapi dulu:\n'+miss.join('\n'));return}
+ D=hitung(wb);D.file=file.name;tampil(`${file.name} · ${D.rows.length} JO lengkap · ${D.ex.length} JO belum lengkap · diimpor ${new Date().toLocaleString('id-ID')}`,file.name);if(ME.role==='admin')simpanCloud(file.name)}catch(x){err('Gagal membaca file: '+x.message)}};fr.readAsArrayBuffer(file)}
+$('#f').onchange=e=>{const f=e.target.files[0];if(f){$('#meta').textContent='Membaca '+f.name+' ...';load(f)}e.target.value=''};
+['dragover','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();if(t==='drop'&&ME.role==='admin'&&e.dataTransfer.files[0])load(e.dataTransfer.files[0])}));
+['fb','fs','fc'].forEach(i=>$('#'+i).onchange=()=>D&&renderMain());$('#q').oninput=()=>D&&renderMain();
+$('#tabs').onclick=e=>{const t=e.target.dataset.t;if(!t)return;document.querySelectorAll('nav button,section').forEach(x=>x.classList.remove('on'));e.target.classList.add('on');$('#'+t).classList.add('on')};
+document.addEventListener('click',e=>{const tr=e.target.closest('tr[data-jo]');if(tr&&D)return openHist(tr.dataset.jo);
+ const th=e.target.closest('#main th[data-k]');if(th&&D){const k=th.dataset.k;sort={k,d:sort.k===k?-sort.d:1};renderMain()}});
+$('#bx').onclick=()=>{if(!D)return;const hd=COLS.map(x=>x[1]),mk=r=>COLS.map(x=>r[x[0]]);
+ const bad=D.rows.filter(x=>x.status==='TIDAK AMAN').sort((a,b)=>a.sel-b.sel),ao=[hd,...D.rows.map(mk)],to=[];
+ [['TOP 10 PALING TIDAK AMAN',bad.slice(0,10)],['JENIS 1 (P>K)',bad.filter(x=>jenis(x)===1).slice(0,10)],['JENIS 2 (R)',bad.filter(x=>jenis(x)===2).slice(0,10)],['TOP 20 TOTAL RP',[...D.rows].sort((a,b)=>b.rp-a.rp).slice(0,20)]].forEach(([t,r])=>{to.push([t],hd,...r.map(mk),[])});
+ const hs=[['No JO','Tgl keluar','Keterangan','Qty LP','Bagian','Tambahan (+) x bagian','Tambah insheet x bagian']];D.rows.forEach(r=>r.h.forEach(h=>hs.push([r.jo,h.tgl,h.ket,h.qty,r.bg,h.kat==='P'?h.qty*r.bg:'',h.kat==='R'?h.qty*r.bg:''])));
+ const wb=XLSX.utils.book_new();[['Analisa Insheet',ao],['Top & Kasus Parah',to],['Riwayat Gudang',hs],['Tidak Lengkap',[['No JO','Alasan'],...D.ex.map(e=>[e.jo,e.alasan])]]].forEach(([n,a])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),n));
+ XLSX.writeFile(wb,'monitoring_insheet_'+new Date().toISOString().slice(0,10)+'.xlsx')};
+</script>
+<script>
+const CFG={url:'https://prrpcahyebktdwgobgcs.supabase.co',key:'sb_publishable_Z9fBZvbFkUMt68O670bI-A_fpjczo_g'};
+let sb=null,ME={role:'user'},idleT=null;
+const lerr=m=>{$('#lerr').textContent=m||''};
+function tampil(meta,logName){
+ const bl=[...new Set(D.rows.map(x=>x.bulan))].sort().reverse(),cu=[...new Set(D.rows.map(x=>x.cust))].sort();
+ fillSel($('#fb'),'Semua bulan',bl);fillSel($('#fc'),'Semua customer',cu);
+ $('#drop').style.display='none';$('#bx').disabled=false;$('#meta').textContent=meta;
+ if(logName){try{const l=JSON.parse(localStorage.getItem('erpInsheetLog')||'[]');l.unshift({t:new Date().toLocaleString('id-ID'),f:logName,a:D.rows.length,b:D.ex.length});localStorage.setItem('erpInsheetLog',JSON.stringify(l.slice(0,10)))}catch(e){}}
+ renderRingkasan();renderMain();renderTop();renderEx()}
+async function simpanCloud(name){
+ const batch=Date.now().toString(36)+Math.random().toString(36).slice(2,8),base=$('#meta').textContent;
+ try{
+  $('#meta').textContent=base+' · menyimpan ke Supabase…';
+  const rows=D.rows.map(r=>({jo:r.jo,bulan:r.bulan,cust:r.cust,status:r.status,data:JSON.parse(JSON.stringify(r)),batch,updated_at:new Date().toISOString()}));
+  for(let i=0;i<rows.length;i+=100){const{error}=await sb.from('insheet_jo').upsert(rows.slice(i,i+100),{onConflict:'jo'});if(error)throw error}
+  const ex=D.ex.map(e=>({jo:e.jo,alasan:e.alasan,batch}));
+  for(let i=0;i<ex.length;i+=200){const{error}=await sb.from('insheet_ex').upsert(ex.slice(i,i+200),{onConflict:'jo'});if(error)throw error}
+  let q=await sb.from('insheet_jo').delete().neq('batch',batch);if(q.error)throw q.error;
+  q=await sb.from('insheet_ex').delete().neq('batch',batch);if(q.error)throw q.error;
+  await sb.from('insheet_import_log').insert({file:name,jo_lengkap:D.rows.length,jo_tidak_lengkap:D.ex.length});
+  $('#meta').textContent=base+' · tersimpan di Supabase'
+ }catch(e){$('#meta').textContent=base;err('Gagal menyimpan ke Supabase: '+(e.message||e))}}
+async function ambil(tbl,cols){let out=[],from=0;for(;;){const{data,error}=await sb.from(tbl).select(cols).order('jo').range(from,from+999);if(error)throw error;out=out.concat(data);if(data.length<1000)return out;from+=1000}}
+async function loadCloud(){
+ try{const a=await ambil('insheet_jo','jo,data,updated_at'),x=await ambil('insheet_ex','jo,alasan');
+  if(!a.length){$('#meta').textContent='Belum ada data di Supabase.'+(ME.role==='admin'?' Impor Excel untuk mengisi.':' Hubungi admin.');$('#drop').style.display=ME.role==='admin'?'block':'none';return}
+  D={rows:a.map(o=>{const r=o.data;(r.h||[]).forEach(h=>{h.tgl=h.tgl?new Date(h.tgl):null});return r}),ex:x,file:'Supabase'};
+  const up=a.reduce((m,o)=>o.updated_at>m?o.updated_at:m,'');
+  tampil(`Data Supabase · ${D.rows.length} JO lengkap · ${D.ex.length} JO belum lengkap · diperbarui ${new Date(up).toLocaleString('id-ID')}`)
+ }catch(e){err('Gagal memuat data: '+(e.message||e))}}
+async function masuk(session){
+ const{data,error}=await sb.from('insheet_profiles').select('nama,role,aktif').eq('id',session.user.id).maybeSingle();
+ if(error||!data||!data.aktif){await sb.auth.signOut();$('#login').style.display='flex';lerr('Akun belum aktif. Hubungi admin.');return}
+ ME={role:data.role,nama:data.nama||session.user.email};
+ $('#login').style.display='none';$('#who').textContent=ME.nama+' · '+ME.role;$('#lo').hidden=false;$('#imp').hidden=ME.role!=='admin';
+ idleReset();await loadCloud()}
+async function keluar(){try{await sb.auth.signOut()}catch(e){}location.reload()}
+function idleReset(){clearTimeout(idleT);idleT=setTimeout(keluar,30*60000)}
+['click','keydown','scroll'].forEach(t=>document.addEventListener(t,()=>{if(ME.nama)idleReset()}));
+$('#lo').onclick=keluar;
+$('#lf').onsubmit=async e=>{e.preventDefault();lerr('');
+ if(!sb){lerr('Konfigurasi Supabase belum diisi di index.html.');return}
+ const{data,error}=await sb.auth.signInWithPassword({email:$('#le').value.trim(),password:$('#lp').value});
+ if(error){lerr('Email atau password salah.');return}
+ $('#lp').value='';await masuk(data.session)};
+if(!window.supabase||CFG.url.startsWith('ISI_')){lerr('Konfigurasi Supabase belum diisi di index.html.')}
+else{sb=supabase.createClient(CFG.url,CFG.key,{auth:{persistSession:true}});sb.auth.getSession().then(({data})=>{if(data.session)masuk(data.session)})}
+</script></body></html>
